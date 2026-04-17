@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>日文50音隨身學</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { -webkit-tap-highlight-color: transparent; }
+        .kana-card { transition: all 0.2s; cursor: pointer; }
+        .kana-card:active { transform: scale(0.9); background-color: #fff7ed; }
+        .nav-active { 
+            background-color: #f8fafc; 
+            color: #f59e0b; 
+            border-left: 4px solid #f59e0b;
+            font-weight: bold;
+        }
+        .tab-active {
+            color: #f59e0b;
+            border-bottom: 3px solid #f59e0b;
+            font-weight: bold;
+        }
+        .empty-slot { background: transparent; border: none; pointer-events: none; }
+        /* 隱藏捲軸 */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="bg-white min-h-screen flex">
+
+    <aside class="w-20 md:w-32 bg-slate-100 border-r border-slate-200 flex flex-col sticky top-0 h-screen">
+        <div class="p-4 text-center border-b border-slate-200 bg-slate-50">
+            <h1 class="text-xs md:text-sm font-bold text-slate-800">日文<br>學習</h1>
+        </div>
+        <nav class="flex-1">
+            <button class="w-full py-8 text-sm text-slate-600 nav-active">
+                50音
+            </button>
+        </nav>
+        <div class="p-4 text-[10px] text-slate-400 text-center">Ver 1.4</div>
+    </aside>
+
+    <main class="flex-1 bg-slate-50 flex flex-col h-screen">
+        <header class="bg-white shadow-sm sticky top-0 z-20">
+            <div class="px-4 pt-4 pb-2">
+                <h2 class="text-lg font-bold text-slate-700">五十音學習</h2>
+            </div>
+            <div class="flex justify-around border-t border-slate-100">
+                <button onclick="switchTab('seion')" id="btn-seion" class="py-3 w-full text-sm text-slate-500 tab-active">清音</button>
+                <button onclick="switchTab('dakuon')" id="btn-dakuon" class="py-3 w-full text-sm text-slate-500">濁音/半濁音</button>
+                <button onclick="switchTab('youon')" id="btn-youon" class="py-3 w-full text-sm text-slate-500">拗音</button>
+            </div>
+        </header>
+
+        <div id="app-container" class="flex-1 p-4 overflow-y-auto no-scrollbar grid grid-cols-4 md:grid-cols-5 gap-3 content-start">
+            </div>
+    </main>
+
+    <script>
+        const japaneseData = {
+            seion: [
+                {h:'あ',k:'ア',r:'a'}, {h:'い',k:'イ',r:'i'}, {h:'う',k:'ウ',r:'u'}, {h:'え',k:'エ',r:'e'}, {h:'お',k:'オ',r:'o'},
+                {h:'か',k:'カ',r:'ka'}, {h:'き',k:'キ',r:'ki'}, {h:'く',k:'ク',r:'ku'}, {h:'け',k:'ケ',r:'ke'}, {h:'こ',k:'コ',r:'ko'},
+                {h:'さ',k:'サ',r:'sa'}, {h:'し',k:'シ',r:'shi'}, {h:'す',k:'ス',r:'su'}, {h:'せ',k:'セ',r:'se'}, {h:'そ',k:'ソ',r:'so'},
+                {h:'た',k:'タ',r:'ta'}, {h:'ち',k:'チ',r:'chi'}, {h:'つ',k:'ツ',r:'tsu'}, {h:'て',k:'テ',r:'te'}, {h:'と',k:'ト',r:'to'},
+                {h:'な',k:'ナ',r:'na'}, {h:'に',k:'ニ',r:'ni'}, {h:'ぬ',k:'ヌ',r:'nu'}, {h:'ね',k:'ネ',r:'ne'}, {h:'の',k:'ノ',r:'no'},
+                {h:'は',k:'ハ',r:'ha'}, {h:'ひ',k:'ヒ',r:'hi'}, {h:'ふ',k:'フ',r:'fu'}, {h:'へ',k:'ヘ',r:'he'}, {h:'ほ',k:'ホ',r:'ho'},
+                {h:'ま',k:'マ',r:'ma'}, {h:'み',k:'ミ',r:'mi'}, {h:'む',k:'ム',r:'mu'}, {h:'め',k:'メ',r:'me'}, {h:'も',k:'莫',r:'mo'},
+                {h:'や',k:'ヤ',r:'ya'}, {empty:true}, {h:'ゆ',k:'ユ',r:'yu'}, {empty:true}, {h:'よ',k:'ヨ',r:'yo'},
+                {h:'ら',k:'ラ',r:'ra'}, {h:'り',k:'リ',r:'ri'}, {h:'る',k:'ル',r:'ru'}, {h:'れ',k:'レ',r:'re'}, {h:'ろ',k:'ロ',r:'ro'},
+                {h:'わ',k:'ワ',r:'wa'}, {empty:true}, {empty:true}, {empty:true}, {h:'を',k:'ヲ',r:'o'},
+                {h:'ん',k:'ン',r:'n'}
+            ],
+            dakuon: [
+                {h:'が',k:'ガ',r:'ga'}, {h:'ぎ',k:'ギ',r:'gi'}, {h:'ぐ',k:'グ',r:'gu'}, {h:'げ',k:'ゲ',r:'ge'}, {h:'ご',k:'ゴ',r:'go'},
+                {h:'ざ',k:'ザ',r:'za'}, {h:'じ',k:'ジ',r:'ji'}, {h:'ず',k:'ズ',r:'zu'}, {h:'ぜ',k:'ゼ',r:'ze'}, {h:'ぞ',k:'ゾ',r:'zo'},
+                {h:'だ',k:'ダ',r:'da'}, {h:'ぢ',k:'ヂ',r:'ji'}, {h:'づ',k:'ヅ',r:'zu'}, {h:'で',k:'デ',r:'de'}, {h:'ど',k:'ド',r:'do'},
+                {h:'ば',k:'巴',r:'ba'}, {h:'び',k:'ビ',r:'bi'}, {h:'ぶ',k:'ブ',r:'bu'}, {h:'べ',k:'貝',r:'be'}, {h:'ぼ',k:'博',r:'bo'},
+                {h:'ぱ',k:'帕',r:'pa'}, {h:'ぴ',k:'皮',r:'pi'}, {h:'ぷ',k:'普',r:'pu'}, {h:'ぺ',k:'佩',r:'pe'}, {h:'ぽ',k:'波',r:'po'}
+            ],
+            youon: [
+                {h:'きゃ',r:'kya'}, {h:'きゅ',r:'kyu'}, {h:'きょ',r:'kyo'},
+                {h:'しゃ',r:'sha'}, {h:'しゅ',r:'shu'}, {h:'しょ',r:'sho'},
+                {h:'ちゃ',r:'cha'}, {h:'ちゅ',r:'chu'}, {h:'ちょ',r:'cho'},
+                {h:'にゃ',r:'nya'}, {h:'にゅ',r:'nyu'}, {h:'にょ',r:'nyo'},
+                {h:'ひゃ',r:'hya'}, {h:'ひゅ',r:'hyu'}, {h:'ひょ',r:'hyo'},
+                {h:'みゃ',r:'mya'}, {h:'みゅ',r:'myu'}, {h:'みょ',r:'myo'},
+                {h:'りゃ',r:'rya'}, {h:'りゅ',r:'ryu'}, {h:'りょ',r:'ryo'},
+                {h:'ぎゃ',r:'gya'}, {h:'ぎゅ',r:'gyu'}, {h:'ぎょ',r:'gyo'},
+                {h:'じゃ',r:'ja'}, {h:'じゅ',r:'ju'}, {h:'じょ',r:'jo'},
+                {h:'びゃ',r:'bya'}, {h:'びゅ',r:'byu'}, {h:'びょ',r:'byo'},
+                {h:'ぴゃ',r:'pya'}, {h:'ぴゅ',r:'pyu'}, {h:'ぴょ',r:'pyo'}
+            ]
+        };
+
+        function speak(text) {
+            const msg = new SpeechSynthesisUtterance();
+            msg.text = text;
+            msg.lang = 'ja-JP';
+            msg.rate = 0.8;
+            window.speechSynthesis.cancel();
+            window.speechSynthesis.speak(msg);
+        }
+
+        function switchTab(type) {
+            const container = document.getElementById('app-container');
+            container.innerHTML = '';
+            
+            // 拗音 2 欄，其他 4 欄
+            container.className = type === 'youon' 
+                ? "flex-1 p-4 overflow-y-auto no-scrollbar grid grid-cols-2 md:grid-cols-3 gap-3 content-start"
+                : "flex-1 p-4 overflow-y-auto no-scrollbar grid grid-cols-4 md:grid-cols-5 gap-3 content-start";
+
+            // 更新標籤樣式
+            ['seion', 'dakuon', 'youon'].forEach(t => {
+                document.getElementById('btn-' + t).className = "py-3 w-full text-sm " + (t === type ? 'tab-active' : 'text-slate-500');
+            });
+
+            // 渲染卡片
+            japaneseData[type].forEach(item => {
+                if (item.empty) {
+                    const div = document.createElement('div');
+                    div.className = 'empty-slot';
+                    container.appendChild(div);
+                    return;
+                }
+                const card = document.createElement('div');
+                card.className = 'kana-card bg-white p-3 rounded-2xl shadow-sm border border-slate-200 text-center';
+                card.onclick = () => speak(item.h);
+                card.innerHTML = `
+                    <div class="text-2xl font-bold text-slate-800">${item.h}</div>
+                    <div class="text-[10px] text-slate-400 uppercase">${item.k || ''}</div>
+                    <div class="text-xs font-semibold text-orange-500 mt-1">${item.r}</div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // 初始化
+        switchTab('seion');
+    </script>
+</body>
+</html>
