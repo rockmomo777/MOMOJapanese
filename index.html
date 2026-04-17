@@ -50,7 +50,22 @@
 /* 如果想完全隱藏捲動條但保留捲動功能 */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-      
+
+/* 修改這部分 */
+.kana-card { 
+    transition: all 0.1s; 
+    cursor: pointer; 
+    -webkit-user-select: none; /* 防止長按選取文字 */
+    user-select: none;
+}
+
+/* 讓手機按下去也能變色，增加觸控回饋 */
+.kana-card:active, .kana-card.touched { 
+    transform: scale(0.95); 
+    background-color: #fff7ed !important; 
+    border-color: #f59e0b;
+}
+        
     </style>
 </head>
 <body class="bg-white min-h-screen flex">
