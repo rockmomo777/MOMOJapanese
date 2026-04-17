@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>毛毛日文學習助手</title>
+    <title>日文學習助手 - 完整分類版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* 基礎樣式：防止手機點擊高亮，設定字體，並隱藏主視窗捲動條 */
@@ -50,8 +50,8 @@
 /* 如果想完全隱藏捲動條但保留捲動功能 */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-/* 修改這部分 */
+      
+      /* 修改這部分 */
 .kana-card { 
     transition: all 0.1s; 
     cursor: pointer; 
@@ -65,7 +65,7 @@
     background-color: #fff7ed !important; 
     border-color: #f59e0b;
 }
-        
+      
     </style>
 </head>
 <body class="bg-white min-h-screen flex">
@@ -874,7 +874,6 @@
             const activeBtn = document.getElementById('btn-' + type);
             if(activeBtn) {
                 activeBtn.classList.add('tab-active');
-                // 將該按鈕滾動到可視範圍中心
                 activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
             }
 
@@ -885,19 +884,26 @@
                           (currentMenu === 'n2') ? japaneseData.n2[type] :
             (japaneseData.words[type] || []);
             
-            // 計算有效筆數並更新界面
             const realCount = dataSet.filter(i => i && (i.h || i.j)).length;
             document.getElementById('word-count').innerText = `本類 ${realCount} 筆`;
 
-            // 渲染內容：50音使用網格，單字使用條列式
+            // --- 核心修改處：渲染卡片邏輯 ---
             if (currentMenu === 'kana') {
                 container.className = "flex-1 p-4 kana-grid content-start";
                 dataSet.forEach(item => {
                     const card = document.createElement('div');
-                    // 處理空位 (如 50 音圖中的空格)
                     if(!item || !item.h) { card.className = "p-4"; container.appendChild(card); return; }
+                    
                     card.className = "word-card bg-white p-3 rounded-lg text-center shadow-sm";
-                    card.onclick = () => speak(item.h);
+                    
+                    // 語音與回饋處理
+                    const handleTap = (e) => {
+                        if (e.type === 'touchstart') e.preventDefault(); // 消除手機 300ms 延遲
+                        speak(item.h);
+                    };
+                    card.onclick = handleTap; // 電腦用
+                    card.ontouchstart = handleTap; // 手機用
+                    
                     card.innerHTML = `<div class="text-2xl font-bold text-slate-800">${item.h}</div><div class="text-[10px] text-orange-500 font-mono font-bold">${item.r}</div>`;
                     container.appendChild(card);
                 });
@@ -906,11 +912,16 @@
                 dataSet.forEach(item => {
                     if(!item) return;
                     const card = document.createElement('div');
-                    // 加入 flex-col 讓卡片可以垂直排列單字與例句
                     card.className = 'word-card bg-white p-4 rounded-xl shadow-sm flex flex-col w-full gap-2';
-                    card.onclick = () => speak(item.j);
                     
-                    // 這裡修改了內容結構，加入了例句 (item.s) 與 例句翻譯 (item.st)
+                    // 語音與回饋處理
+                    const handleTap = (e) => {
+                        if (e.type === 'touchstart') e.preventDefault(); // 消除手機 300ms 延遲
+                        speak(item.j);
+                    };
+                    card.onclick = handleTap; // 電腦用
+                    card.ontouchstart = handleTap; // 手機用
+
                     card.innerHTML = `
                         <div class="flex justify-between items-center w-full">
                             <div class="flex-1 min-w-0 pr-3">
@@ -919,7 +930,6 @@
                             </div>
                             <div class="bg-orange-50 px-3 py-2 rounded-lg text-orange-600 text-sm font-bold flex-shrink-0">${item.c}</div>
                         </div>
-                        
                         ${item.s ? `
                         <div class="mt-2 pt-2 border-t border-slate-100">
                             <div class="flex items-start gap-2">
@@ -932,7 +942,6 @@
                         </div>
                         ` : ''}
                     `;
-                  
                     container.appendChild(card);
                 });
             }
@@ -972,6 +981,8 @@
                 scrollContainer.scrollLeft += evt.deltaY;
             }
         }, { passive: false });
+      
+      
 
         // 初始化：進入頁面後預設載入 50音
         changeMenu('kana');
